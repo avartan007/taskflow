@@ -1,5 +1,0 @@
-[build]
-builder = "nix"
-
-[build.nixpacks]
-providers = ["nodejs-yarn", "nodejs", "python"]
