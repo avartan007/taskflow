@@ -8,41 +8,41 @@ html, body, #root {
 }
 
 :root {
-  --bg: #0f172a;
-  --surface: #1e293b;
-  --surface2: #334155;
-  --surface3: #475569;
-  --border: #64748b;
-  --border2: #78849f;
-  --text: #f1f5f9;
-  --muted: #cbd5e1;
-  --faint: #475569;
-  --primary: #7c3aed;
-  --primary-d: #5b21b6;
-  --primary-l: #a78bfa;
-  --secondary: #06b6d4;
-  --secondary-d: #0369a1;
-  --secondary-l: #22d3ee;
-  --accent: #ec4899;
-  --accent-d: #be185d;
-  --accent-l: #f472b6;
-  --green: #10b981;
-  --green-d: #047857;
-  --green-l: #6ee7b7;
-  --amber: #f59e0b;
-  --amber-d: #d97706;
-  --amber-l: #fbbf24;
-  --red: #ef4444;
-  --red-d: #dc2626;
-  --red-l: #fca5a5;
-  --blue: #3b82f6;
-  --blue-d: #1d4ed8;
-  --blue-l: #93c5fd;
-  --purple: #a78bfa;
-  --purple-d: #6d28d9;
-  --purple-l: #ddd6fe;
-  --radius: 10px;
-  --radius-lg: 16px;
+  --bg: #0D0D0D;
+  --surface: #151312;
+  --surface2: #1A1817;
+  --surface3: #22201F;
+  --border: #2E2A27;
+  --border2: #4B2E19;
+  --text: #D5CFC9;
+  --muted: #A49C92;
+  --faint: #4B2E19;
+  --primary: #B49A83;
+  --primary-d: #5B4636;
+  --primary-l: #C6B19E;
+  --secondary: #5B4636;
+  --secondary-d: #4B2E19;
+  --secondary-l: #7E5F4C;
+  --accent: #7E3E28;
+  --accent-d: #5B2A18;
+  --accent-l: #9E5338;
+  --green: #5E6253;
+  --green-d: #3E4233;
+  --green-l: #7E8273;
+  --amber: #B49A83;
+  --amber-d: #5B4636;
+  --amber-l: #D5CFC9;
+  --red: #7E3E28;
+  --red-d: #4B2E19;
+  --red-l: #9E5338;
+  --blue: #2C3E50;
+  --blue-d: #1A2530;
+  --blue-l: #455F7A;
+  --purple: #5A3D55;
+  --purple-d: #3A2535;
+  --purple-l: #7A5573;
+  --radius: 8px;
+  --radius-lg: 12px;
 }
 
 body {
@@ -67,7 +67,7 @@ input, select, textarea {
   outline: none;
   transition: border .2s;
 }
-input:focus, select:focus, textarea:focus { border-color: var(--blue); }
+input:focus, select:focus, textarea:focus { border-color: var(--primary); }
 select option { background: var(--surface2); }
 
 a { color: var(--blue); text-decoration: none; }
@@ -85,3 +85,40 @@ a:hover { text-decoration: underline; }
 
 .fade-in { animation: fadeIn .2s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* Custom Scrollbars - Dark Academia */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--surface3);
+  border: 2px solid var(--bg);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-d);
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface3) var(--bg);
+}
+/* Premium UI Effects */
+.card-glow {
+  transition: all .3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card-glow:hover {
+  border-color: var(--primary) !important;
+  box-shadow: 0 10px 30px -10px rgba(180, 154, 131, 0.15);
+  transform: translateY(-2px);
+}
+
+.btn-anim:active { transform: scale(0.96); }

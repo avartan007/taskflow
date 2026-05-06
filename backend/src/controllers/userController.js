@@ -39,7 +39,7 @@ exports.create = async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
     const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-    const colors = ['#4f8ef7', '#9b6dff', '#3dba7f', '#f5a623', '#e05252', '#20c9c9'];
+    const colors = ['#5B4636', '#4B2E19', '#B49A83', '#7E3E28', '#2C3E50', '#5E6253', '#5A3D55', '#A49C92'];
     const color = colors[Math.floor(Math.random() * colors.length)];
 
     const result = await pool.query(

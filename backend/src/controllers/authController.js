@@ -5,7 +5,7 @@ const pool = require('../config/db');
 const generateToken = (userId) =>
   jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
 
-const COLORS = ['#4f8ef7', '#9b6dff', '#3dba7f', '#f5a623', '#e05252', '#20c9c9', '#f06292', '#ff8a65'];
+const COLORS = ['#5B4636', '#4B2E19', '#B49A83', '#7E3E28', '#2C3E50', '#5E6253', '#5A3D55', '#A49C92'];
 
 exports.register = async (req, res) => {
   const { name, email, password, role = 'member' } = req.body;

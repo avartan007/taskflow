@@ -22,12 +22,12 @@ export const Btn = ({ variant='primary', size='md', onClick, disabled, children,
 
 export const Badge = ({ color='primary', children }) => {
   const map = { 
-    primary:'#5b21b6:#ddd6fe', 
-    secondary:'#0369a1:#06b6d4', 
-    green:'#047857:#6ee7b7', 
-    amber:'#d97706:#fbbf24', 
-    red:'#dc2626:#fca5a5', 
-    purple:'#6d28d9:#ddd6fe' 
+    primary:'var(--primary-d):var(--primary-l)', 
+    secondary:'var(--secondary-d):var(--secondary-l)', 
+    green:'var(--green-d):var(--green-l)', 
+    amber:'var(--amber-d):var(--amber-l)', 
+    red:'var(--red-d):var(--red-l)', 
+    purple:'var(--purple-d):var(--purple-l)' 
   };
   const [bg, fg] = (map[color] || map.primary).split(':');
   return <span style={{ display:'inline-flex', alignItems:'center', padding:'2px 9px', borderRadius:20, fontSize:12, fontWeight:500, background:bg, color:fg }}>{children}</span>;
@@ -50,14 +50,14 @@ export const Avatar = ({ user, size=28 }) => {
     <div style={{
       width: size, height: size, borderRadius: '50%', display: 'flex',
       alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-      background: (user.color||'#7c3aed') + '22', color: user.color||'#7c3aed',
+      background: (user.color||'var(--primary)') + '22', color: user.color||'var(--primary)',
       fontSize: Math.round(size*.38), fontWeight: 600,
     }}>{user.initials || user.name?.slice(0,2).toUpperCase()}</div>
   );
 };
 
 export const Card = ({ children, style={} }) => (
-  <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--radius-lg)', padding:'1.25rem', ...style }}>{children}</div>
+  <div className="card-glow" style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:'var(--radius-lg)', padding:'1.25rem', ...style }}>{children}</div>
 );
 
 export const Modal = ({ title, onClose, children }) => (
@@ -85,7 +85,7 @@ export const FormRow = ({ children }) => (
 );
 
 export const StatCard = ({ label, value, color='var(--text)' }) => (
-  <div style={{ background:'var(--surface2)', borderRadius:'var(--radius)', padding:'1rem', border:'1px solid var(--border)' }}>
+  <div className="card-glow" style={{ background:'var(--surface2)', borderRadius:'var(--radius)', padding:'1rem', border:'1px solid var(--border)' }}>
     <div style={{ fontSize:26, fontWeight:600, marginBottom:2, color }}>{value}</div>
     <div style={{ fontSize:12, color:'var(--muted)' }}>{label}</div>
   </div>

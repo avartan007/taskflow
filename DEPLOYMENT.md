@@ -55,48 +55,47 @@ cd frontend
 npm run dev
 ```
 
-## Production Deployment on Railway
+## Production Deployment on Railway (Recommended)
+
+Since this is a monorepo, the easiest way to deploy on Railway is to create **two separate services** from your single GitHub repository.
 
 ### 1. Push to GitHub
-
+If you haven't already:
 ```bash
-# Initialize Git repo (if not already done)
 git init
 git add .
 git commit -m "Initial commit: TaskFlow full-stack app"
-git remote add origin https://github.com/YOUR_USERNAME/task-team-manager.git
+# Create a repository on GitHub first, then:
+git remote add origin https://github.com/YOUR_USERNAME/taskflow.git
 git branch -M main
 git push -u origin main
 ```
 
-### 2. Create Railway Project
+### 2. Deploy Backend Service
+1. Go to **Railway.app** and click "New Project" -> "Deploy from GitHub".
+2. Select your `taskflow` repository.
+3. Once the service is created, go to **Settings** -> **General** -> **Root Directory** and set it to `/backend`.
+4. Go to **Variables** and add:
+   - `PORT`: `5003`
+   - `JWT_SECRET`: (Any long random string)
+   - `CORS_ORIGIN`: (Leave blank for now, add your frontend URL later)
+   - `NODE_ENV`: `production`
+5. Click **New** -> **Database** -> **PostgreSQL**. Railway will automatically link this to your backend service.
+6. **Deployment Command**: Ensure it runs migrations. Set the "Build Command" or "Start Command" in Settings to: `node src/config/migrate.js && npm start`
 
-1. Go to https://railway.app
-2. Click "New Project"
-3. Select "Deploy from GitHub"
-4. Authorize GitHub and select your repository
-5. Railway will auto-detect and create services
+### 3. Deploy Frontend Service
+1. In the same Railway project, click **New** -> **GitHub Repo**.
+2. Select the **same** `taskflow` repository again.
+3. Go to **Settings** -> **General** -> **Root Directory** and set it to `/frontend`.
+4. Go to **Variables** and add:
+   - `VITE_API_URL`: (The "Public Networking" URL of your Backend Service + `/api`)
+     - *Example: `https://taskflow-backend.up.railway.app/api`*
+5. Railway will automatically detect it as a Vite app and run `npm run build`.
 
-### 3. Configure Services
-
-#### Backend Service
-- **Start Command**: `npm install && node migrate.js && npm start`
-- **Port**: 5003
-- **Environment Variables**:
-  - `NODE_ENV=production`
-  - `DATABASE_URL` (Railway PostgreSQL plugin - auto-linked)
-  - `JWT_SECRET` (Generate a strong secret)
-  - `CORS_ORIGIN` (Your frontend URL from Railway)
-
-#### Frontend Service
-- **Build Command**: `cd frontend && npm install && npm run build`
-- **Start Command**: `npm run preview` (in frontend directory)
-- **Environment Variables**:
-  - `VITE_API_URL` (Your backend API URL from Railway)
-
-#### Database Service
-- Add PostgreSQL plugin to project
-- Railway will auto-link to backend
+### 4. Final Connection
+1. Copy the URL of your **Frontend** service.
+2. Go back to your **Backend** service variables and update `CORS_ORIGIN` with that URL.
+3. Redeploy the Backend.
 
 ### 4. Database Migration in Production
 1. In Railway Dashboard, go to Backend service

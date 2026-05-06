@@ -4,8 +4,8 @@ import { Avatar } from './UI';
 
 const NavItem = ({ icon, label, path, active, onClick }) => (
   <div onClick={onClick}
-    style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 16px', color: active ? 'var(--blue-l)' : 'var(--muted)',
-      background: active ? 'var(--blue-d)' : 'transparent', borderRadius:8, cursor:'pointer', transition:'all .15s',
+    style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 16px', color: active ? 'var(--primary-l)' : 'var(--muted)',
+      background: active ? 'var(--primary-d)' : 'transparent', borderRadius:8, cursor:'pointer', transition:'all .15s',
       fontSize:13.5, margin:'1px 8px' }}
     onMouseEnter={e => { if(!active) e.currentTarget.style.background='var(--surface2)'; e.currentTarget.style.color='var(--text)'; }}
     onMouseLeave={e => { if(!active) { e.currentTarget.style.background='transparent'; e.currentTarget.style.color='var(--muted)'; }}}>
@@ -22,7 +22,7 @@ export default function Sidebar({ projects }) {
   return (
     <div style={{ width:220, background:'var(--surface)', borderRight:'1px solid var(--border)', display:'flex', flexDirection:'column', height:'100vh', position:'fixed', left:0, top:0, zIndex:100 }}>
       <div style={{ padding:'1rem 1.25rem', borderBottom:'1px solid var(--border)' }}>
-        <div style={{ fontSize:16, fontWeight:700, color:'var(--blue)', letterSpacing:'-.5px' }}>⬡ TaskFlow</div>
+        <div style={{ fontSize:16, fontWeight:700, color:'var(--primary)', letterSpacing:'-.5px' }}>⬡ TaskFlow</div>
       </div>
 
       <div style={{ flex:1, overflowY:'auto', padding:'.5rem 0' }}>
@@ -32,6 +32,7 @@ export default function Sidebar({ projects }) {
           onClick={() => navigate('/projects')} />
         <NavItem icon="✓" label="My Tasks" active={location.pathname === '/my-tasks'}
           onClick={() => navigate('/my-tasks')} />
+
         {user?.role === 'admin' && (
           <NavItem icon="⊕" label="Team" active={location.pathname === '/team'}
             onClick={() => navigate('/team')} />
@@ -44,8 +45,8 @@ export default function Sidebar({ projects }) {
             </div>
             {projects.map(p => (
               <div key={p.id} onClick={() => navigate(`/projects/${p.id}`)}
-                style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 16px', color: location.pathname === `/projects/${p.id}` ? 'var(--blue-l)' : 'var(--muted)',
-                  background: location.pathname === `/projects/${p.id}` ? 'var(--blue-d)' : 'transparent', borderRadius:8, cursor:'pointer', fontSize:13.5, margin:'1px 8px', transition:'all .15s' }}>
+                style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 16px', color: location.pathname === `/projects/${p.id}` ? 'var(--primary-l)' : 'var(--muted)',
+                  background: location.pathname === `/projects/${p.id}` ? 'var(--primary-d)' : 'transparent', borderRadius:8, cursor:'pointer', fontSize:13.5, margin:'1px 8px', transition:'all .15s' }}>
                 <span style={{ width:8, height:8, borderRadius:'50%', background:p.color, flexShrink:0, display:'inline-block' }} />
                 <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.name}</span>
               </div>

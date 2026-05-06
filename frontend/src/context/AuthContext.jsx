@@ -12,7 +12,10 @@ export function AuthProvider({ children }) {
     if (token) {
       api.get('/auth/me')
         .then(res => setUser(res.data.user))
-        .catch(() => localStorage.removeItem('token'))
+        .catch((err) => {
+          console.error('Auth check failed:', err);
+          localStorage.removeItem('token');
+        })
         .finally(() => setLoading(false));
     } else {
       setLoading(false);

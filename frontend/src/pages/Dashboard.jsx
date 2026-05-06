@@ -32,10 +32,10 @@ export default function Dashboard({ onProjectClick }) {
       </div>
 
       <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:'1.5rem' }}>
-        <StatCard label="My Tasks" value={stats?.total||0} color="var(--blue)" />
-        <StatCard label="In Progress" value={stats?.in_progress||0} color="var(--amber)" />
-        <StatCard label="Completed" value={stats?.done||0} color="var(--green)" />
-        <StatCard label="Overdue" value={stats?.overdue||0} color="var(--red)" />
+        <StatCard label="My Tasks" value={stats?.total||0} color="var(--primary)" />
+        <StatCard label="In Progress" value={stats?.in_progress||0} color="var(--primary)" />
+        <StatCard label="Completed" value={stats?.done||0} color="var(--primary)" />
+        <StatCard label="Overdue" value={stats?.overdue||0} color="var(--red-l)" />
       </div>
 
       <div style={{ display:'grid', gridTemplateColumns:'1.6fr 1fr', gap:'1rem' }}>

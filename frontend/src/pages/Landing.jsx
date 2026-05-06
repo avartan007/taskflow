@@ -1,19 +1,42 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import '../styles/landing.css';
 
 export default function Landing() {
   const navigate = useNavigate();
-  const [scrollY, setScrollY] = useState(0);
+  const { user } = useAuth();
 
   useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
+    // Just keep the scroll event for other effects if needed
+    const handleScroll = () => {
+      // Future scroll logic
+    };
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    
+    // Add mouse tracking for bento card glow effect
+    const handleMouseMove = (e) => {
+      for(const card of document.querySelectorAll('.bento-card')) {
+        const rect = card.getBoundingClientRect(),
+              x = e.clientX - rect.left,
+              y = e.clientY - rect.top;
+        card.style.setProperty('--mouse-x', `${x}px`);
+        card.style.setProperty('--mouse-y', `${y}px`);
+      }
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
   }, []);
 
   return (
     <div className="landing">
+      <div className="landing-bg"></div>
+      <div className="landing-grid"></div>
+
       {/* Navigation */}
       <nav className="landing-nav">
         <div className="nav-container">
@@ -21,275 +44,233 @@ export default function Landing() {
             <div className="logo-icon">⬡</div>
             <span>TaskFlow</span>
           </div>
-          <div className="nav-buttons">
-            <button className="nav-btn signin" onClick={() => navigate('/login')}>Sign In</button>
-            <button className="nav-btn signup" onClick={() => navigate('/login')}>Get Started</button>
+          <div className="nav-actions">
+            {user ? (
+              <button className="nav-btn signup" onClick={() => navigate('/dashboard')}>Go to Dashboard</button>
+            ) : (
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button className="nav-btn signin" onClick={() => navigate('/login')}>Sign In</button>
+                <button className="nav-btn signup" onClick={() => navigate('/login')}>Get Started</button>
+              </div>
+            )}
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="hero" style={{ transform: `translateY(${scrollY * 0.5}px)` }}>
-        <div className="hero-bg">
-          <div className="gradient-orb orb-1" style={{ transform: `translateY(${scrollY * 0.3}px)` }}></div>
-          <div className="gradient-orb orb-2" style={{ transform: `translateY(${scrollY * 0.4}px)` }}></div>
-          <div className="gradient-orb orb-3" style={{ transform: `translateY(${scrollY * 0.35}px)` }}></div>
+      <section className="hero">
+        <div className="hero-badge">
+          ✨ TaskFlow 2.0 is now live
         </div>
+        <h1 className="hero-title">
+          The new standard for <br/>
+          <span className="text-emerald">team coordination.</span>
+        </h1>
+        <p className="hero-subtitle">
+          Experience a beautiful, fast, and intelligent project management platform designed for modern product teams. Stop tracking tasks, start shipping features.
+        </p>
+        <div className="hero-actions">
+          <button className="btn-large btn-primary" onClick={() => navigate(user ? '/dashboard' : '/login')}>
+            {user ? 'Open Dashboard' : 'Start for free'} →
+          </button>
+          <button className="btn-large btn-secondary" onClick={() => {
+            document.querySelector('.preview-container').scrollIntoView({ behavior: 'smooth' });
+          }}>
+            Explore the app
+          </button>
+        </div>
+      </section>
 
-        <div className="hero-content fade-in-down">
-          <h1 className="hero-title">
-            Manage Your Team, <span className="gradient-text">Master Your Projects</span>
-          </h1>
-          <p className="hero-subtitle">
-            Streamline project management with real-time collaboration, task tracking, and team coordination in one powerful platform.
-          </p>
-
-          <div className="hero-buttons">
-            <button 
-              className="btn btn-primary"
-              onClick={() => navigate('/login')}
-            >
-              Start For Free
-              <span className="btn-arrow">→</span>
-            </button>
-            <button 
-              className="btn btn-secondary"
-              onClick={() => {
-                document.querySelector('.features').scrollIntoView({ behavior: 'smooth' });
-              }}
-            >
-              Learn More
-            </button>
-          </div>
-
-          <div className="hero-stats">
-            <div className="stat">
-              <div className="stat-number">100%</div>
-              <div className="stat-label">Task Tracking</div>
-            </div>
-            <div className="stat">
-              <div className="stat-number">3 Roles</div>
-              <div className="stat-label">Permission Levels</div>
-            </div>
-            <div className="stat">
-              <div className="stat-number">Real-time</div>
-              <div className="stat-label">Collaboration</div>
-            </div>
+      {/* Trusted By Marquee */}
+      <section className="trusted-section">
+        <div className="trusted-text">Trusted by modern engineering teams</div>
+        <div className="marquee-container">
+          <div className="marquee">
+            <div className="company-logo">⬡ Acme Corp</div>
+            <div className="company-logo">⚡️ Zapier</div>
+            <div className="company-logo">▲ Vercel</div>
+            <div className="company-logo">⌘ Linear</div>
+            <div className="company-logo">✧ Raycast</div>
+            <div className="company-logo">⬡ Acme Corp</div>
+            <div className="company-logo">⚡️ Zapier</div>
+            <div className="company-logo">▲ Vercel</div>
+            <div className="company-logo">⌘ Linear</div>
+            <div className="company-logo">✧ Raycast</div>
           </div>
         </div>
+      </section>
 
-        <div className="hero-illustration fade-in-up">
-          <div className="dashboard-preview">
-            <div className="preview-header"></div>
-            <div className="preview-content">
-              <div className="preview-card"></div>
-              <div className="preview-card"></div>
-              <div className="preview-card"></div>
+      {/* 3D Dashboard Preview */}
+      <section className="preview-container">
+        <div className="preview-window">
+          <div className="preview-header">
+            <div className="dot r"></div>
+            <div className="dot y"></div>
+            <div className="dot g"></div>
+            <div className="preview-url">🔒 taskflow.app/acme/project-alpha</div>
+          </div>
+          <div className="preview-body">
+            <div className="preview-sidebar">
+              <div className="nav-item-mock active"><div className="mock-icon"></div><span>Dashboard</span></div>
+              <div className="nav-item-mock"><div className="mock-icon"></div><span>Projects</span></div>
+              <div className="nav-item-mock"><div className="mock-icon"></div><span>Tasks</span></div>
+              <div className="nav-item-mock"><div className="mock-icon"></div><span>Team</span></div>
+              <div className="nav-item-mock" style={{marginTop:'2rem'}}><div className="mock-icon"></div><span>Settings</span></div>
+            </div>
+            <div className="preview-main">
+              <h4 style={{ margin: '0 0 1.5rem 0', color: 'var(--text-main)', opacity: 0.8 }}>Active Project: Alpha</h4>
+              <div className="mock-kanban">
+                <div className="mock-col">
+                  <div className="mock-col-header"><div className="mock-col-title">To Do</div></div>
+                  <div className="mock-card-task">
+                    <div className="mock-task-title">Design System Audit</div>
+                    <div className="mock-task-meta"><div className="mock-tag red">High</div></div>
+                    <div className="mock-task-footer"><span style={{fontSize: 10, opacity: 0.5}}>May 12</span><div className="mock-avatar"></div></div>
+                  </div>
+                  <div className="mock-card-task">
+                    <div className="mock-task-title">API Integration</div>
+                    <div className="mock-task-meta"><div className="mock-tag blue">Medium</div></div>
+                    <div className="mock-task-footer"><span style={{fontSize: 10, opacity: 0.5}}>May 14</span><div className="mock-avatar"></div></div>
+                  </div>
+                </div>
+                <div className="mock-col">
+                  <div className="mock-col-header"><div className="mock-col-title">In Progress</div></div>
+                  <div className="mock-card-task">
+                    <div className="mock-task-title">Mobile Responsive Fix</div>
+                    <div className="mock-task-meta"><div className="mock-tag">Low</div><div className="mock-tag blue">UI</div></div>
+                    <div className="mock-task-footer"><span style={{fontSize: 10, opacity: 0.5}}>Today</span><div className="mock-avatar"></div></div>
+                  </div>
+                </div>
+                <div className="mock-col">
+                  <div className="mock-col-header"><div className="mock-col-title">Done</div></div>
+                  <div className="mock-card-task" style={{opacity: 0.4}}>
+                    <div className="mock-task-title" style={{textDecoration:'line-through'}}>Initial Setup</div>
+                    <div className="mock-task-footer"><span style={{fontSize: 10, opacity: 0.5}}>Completed</span><div className="mock-avatar"></div></div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="features">
-        <div className="section-label">Features</div>
-        <h2>Everything You Need</h2>
-        <p className="section-subtitle">Powerful tools designed for modern teams</p>
+      {/* Features Bento Grid */}
+      <section className="features-section">
+        <div className="section-header landing-fade-in">
+          <h2 className="section-title">Everything you need to build faster.</h2>
+          <p className="hero-subtitle" style={{ marginBottom: 0 }}>Powerful workflows wrapped in a beautifully simple interface.</p>
+        </div>
 
-        <div className="features-grid">
-          <div className="feature-card fade-in" style={{ transitionDelay: '0.1s' }}>
-            <div className="feature-icon">📊</div>
-            <h3>Dashboard</h3>
-            <p>Get a complete overview of all your projects, tasks, and team progress at a glance.</p>
+        <div className="bento-grid">
+          <div className="bento-card large landing-fade-in" style={{ animationDelay: '0.1s' }}>
+            <div className="bento-icon">📊</div>
+            <h3>Intelligent Dashboard</h3>
+            <p>Get a bird's-eye view of your entire organization. Track progress, identify blockers, and monitor team velocity in real-time across all active projects.</p>
+          </div>
+          
+          <div className="bento-card landing-fade-in" style={{ animationDelay: '0.2s' }}>
+            <div className="bento-icon">⚡️</div>
+            <h3>Lightning Fast</h3>
+            <p>Built with modern web technologies, TaskFlow responds instantly. No loading spinners, no waiting. Just pure productivity.</p>
           </div>
 
-          <div className="feature-card fade-in" style={{ transitionDelay: '0.2s' }}>
-            <div className="feature-icon">⬒</div>
-            <h3>Project Management</h3>
-            <p>Organize projects with color coding, member assignment, and progress tracking.</p>
+          <div className="bento-card landing-fade-in" style={{ animationDelay: '0.3s' }}>
+            <div className="bento-icon">🛡️</div>
+            <h3>Enterprise Security</h3>
+            <p>Bank-grade encryption, secure JWT authentication, and strict role-based access control out of the box.</p>
           </div>
 
-          <div className="feature-card fade-in" style={{ transitionDelay: '0.3s' }}>
-            <div className="feature-icon">✓</div>
-            <h3>Task Tracking</h3>
-            <p>Create, assign, and track tasks with priority levels, due dates, and status updates.</p>
-          </div>
-
-          <div className="feature-card fade-in" style={{ transitionDelay: '0.4s' }}>
-            <div className="feature-icon">👥</div>
-            <h3>Team Collaboration</h3>
-            <p>Manage team members with role-based permissions and project-level access control.</p>
-          </div>
-
-          <div className="feature-card fade-in" style={{ transitionDelay: '0.5s' }}>
-            <div className="feature-icon">📋</div>
-            <h3>Kanban Board</h3>
-            <p>Visualize workflow with drag-and-drop Kanban board for better task organization.</p>
-          </div>
-
-          <div className="feature-card fade-in" style={{ transitionDelay: '0.6s' }}>
-            <div className="feature-icon">🔐</div>
-            <h3>Secure & Reliable</h3>
-            <p>Enterprise-grade security with JWT authentication, encrypted passwords, and role-based access.</p>
+          <div className="bento-card large landing-fade-in" style={{ animationDelay: '0.4s' }}>
+            <div className="bento-icon">🤝</div>
+            <h3>Seamless Collaboration</h3>
+            <p>Assign tasks, set priorities, and track due dates. Whether you're an Admin, Manager, or Member, you'll have exactly the permissions you need to do your best work.</p>
           </div>
         </div>
       </section>
 
       {/* Roles Section */}
-      <section className="roles">
-        <div className="section-label">Roles</div>
-        <h2>Built for Every Team Member</h2>
-
+      <section className="roles-section">
+        <div className="section-header landing-fade-in">
+          <h2 className="section-title">Built for every team member.</h2>
+          <p className="hero-subtitle" style={{ marginBottom: 0 }}>Granular permissions ensure everyone sees exactly what they need.</p>
+        </div>
+        
         <div className="roles-grid">
-          <div className="role-card">
+          <div className="role-card landing-fade-in" style={{ animationDelay: '0.1s' }}>
             <div className="role-badge">👑</div>
             <h3>Admin</h3>
             <p className="role-desc">Full system access, user management, and complete project control.</p>
-            <ul className="role-features">
-              <li>✓ Manage all users</li>
-              <li>✓ Create any project</li>
-              <li>✓ View all tasks</li>
-              <li>✓ Delete projects</li>
+            <ul className="role-list">
+              <li><span className="check-icon">✓</span> Manage all users</li>
+              <li><span className="check-icon">✓</span> Create any project</li>
+              <li><span className="check-icon">✓</span> View all tasks</li>
             </ul>
           </div>
 
-          <div className="role-card">
+          <div className="role-card landing-fade-in" style={{ animationDelay: '0.2s' }}>
             <div className="role-badge">📊</div>
             <h3>Manager</h3>
             <p className="role-desc">Manage your projects and coordinate team members effectively.</p>
-            <ul className="role-features">
-              <li>✓ Create projects</li>
-              <li>✓ Assign team members</li>
-              <li>✓ Update project tasks</li>
-              <li>✓ Monitor progress</li>
+            <ul className="role-list">
+              <li><span className="check-icon">✓</span> Create projects</li>
+              <li><span className="check-icon">✓</span> Assign team members</li>
+              <li><span className="check-icon">✓</span> Monitor progress</li>
             </ul>
           </div>
 
-          <div className="role-card">
+          <div className="role-card landing-fade-in" style={{ animationDelay: '0.3s' }}>
             <div className="role-badge">👤</div>
             <h3>Member</h3>
             <p className="role-desc">Collaborate on assigned projects and complete your tasks.</p>
-            <ul className="role-features">
-              <li>✓ View assigned projects</li>
-              <li>✓ Update task status</li>
-              <li>✓ Collaborate with team</li>
-              <li>✓ Track progress</li>
+            <ul className="role-list">
+              <li><span className="check-icon">✓</span> View assigned projects</li>
+              <li><span className="check-icon">✓</span> Update task status</li>
+              <li><span className="check-icon">✓</span> Collaborate with team</li>
             </ul>
           </div>
-        </div>
-      </section>
-
-      {/* Demo Credentials */}
-      <section className="demo">
-        <div className="demo-content">
-          <div className="section-label">Try It Now</div>
-          <h2>Test Drive TaskFlow</h2>
-          <p>Sign in with any of these demo accounts to explore all features:</p>
-
-          <div className="demo-accounts">
-            <div className="account-box">
-              <div className="account-role">👑 Admin</div>
-              <div className="account-info">
-                <input type="text" value="admin@demo.com" readOnly />
-                <input type="text" value="admin123" readOnly />
-              </div>
-              <button 
-                className="copy-btn"
-                onClick={() => {
-                  navigator.clipboard.writeText('admin@demo.com');
-                  navigator.clipboard.writeText('admin123');
-                }}
-              >
-                Copy Credentials
-              </button>
-            </div>
-
-            <div className="account-box">
-              <div className="account-role">📊 Manager</div>
-              <div className="account-info">
-                <input type="text" value="jane@demo.com" readOnly />
-                <input type="text" value="jane123" readOnly />
-              </div>
-              <button 
-                className="copy-btn"
-                onClick={() => {
-                  navigator.clipboard.writeText('jane@demo.com');
-                  navigator.clipboard.writeText('jane123');
-                }}
-              >
-                Copy Credentials
-              </button>
-            </div>
-
-            <div className="account-box">
-              <div className="account-role">👤 Member</div>
-              <div className="account-info">
-                <input type="text" value="maya@demo.com" readOnly />
-                <input type="text" value="maya123" readOnly />
-              </div>
-              <button 
-                className="copy-btn"
-                onClick={() => {
-                  navigator.clipboard.writeText('maya@demo.com');
-                  navigator.clipboard.writeText('maya123');
-                }}
-              >
-                Copy Credentials
-              </button>
-            </div>
-          </div>
-
-          <button 
-            className="btn btn-primary"
-            onClick={() => navigate('/login')}
-            style={{ marginTop: '2rem' }}
-          >
-            Go to Login
-          </button>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="cta">
-        <h2>Ready to streamline your team?</h2>
-        <p>Join teams using TaskFlow to manage projects efficiently</p>
-        <button 
-          className="btn btn-primary"
-          onClick={() => navigate('/login')}
-        >
-          Get Started Now
+      <section className="cta-section landing-fade-in" style={{ animationDelay: '0.2s' }}>
+        <h2 className="cta-title">Ready to transform your workflow?</h2>
+        <p className="cta-subtitle" style={{ fontSize: '1.25rem' }}>Join top tier teams using TaskFlow to ship better products.</p>
+        <button className="btn-large btn-primary" onClick={() => navigate(user ? '/dashboard' : '/login')} style={{ marginTop: '1rem' }}>
+          {user ? 'Go to Dashboard' : 'Get Started Now'}
         </button>
       </section>
 
       {/* Footer */}
       <footer className="landing-footer">
         <div className="footer-content">
-          <div className="footer-section">
-            <h4>TaskFlow</h4>
-            <p>Modern project management for modern teams</p>
+          <div className="footer-brand">
+            <h4><span className="logo-icon">⬡</span> TaskFlow</h4>
+            <p>Modern project management for modern teams. Stop tracking tasks and start shipping features.</p>
           </div>
-          <div className="footer-section">
-            <h4>Features</h4>
+          <div className="footer-col">
+            <h5>Product</h5>
             <ul>
-              <li><a href="#features">Dashboard</a></li>
-              <li><a href="#features">Projects</a></li>
-              <li><a href="#features">Tasks</a></li>
-              <li><a href="#features">Team</a></li>
+              <li><a href="#">Features</a></li>
+              <li><a href="#">Integrations</a></li>
+              <li><a href="#">Pricing</a></li>
+              <li><a href="#">Changelog</a></li>
             </ul>
           </div>
-          <div className="footer-section">
-            <h4>Security</h4>
+          <div className="footer-col">
+            <h5>Company</h5>
             <ul>
-              <li><a href="#security">JWT Authentication</a></li>
-              <li><a href="#security">Role-Based Access</a></li>
-              <li><a href="#security">Data Encryption</a></li>
+              <li><a href="#">About Us</a></li>
+              <li><a href="#">Careers</a></li>
+              <li><a href="#">Blog</a></li>
+              <li><a href="#">Contact</a></li>
             </ul>
           </div>
         </div>
         <div className="footer-bottom">
-          <p>&copy; 2026 TaskFlow. All rights reserved.</p>
+          <p>&copy; 2026 TaskFlow Inc. All rights reserved.</p>
         </div>
       </footer>
+
     </div>
   );
 }
