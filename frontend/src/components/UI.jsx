@@ -6,7 +6,7 @@ const s = {
     fontSize: size === 'sm' ? 13 : 14, fontWeight: 500,
     padding: size === 'sm' ? '5px 12px' : '9px 18px',
     transition: 'all .15s',
-    background: variant === 'primary' ? 'var(--blue)' :
+    background: variant === 'primary' ? 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)' :
                 variant === 'danger'  ? 'var(--red-d)' : 'transparent',
     color: variant === 'primary' ? '#fff' :
            variant === 'danger'  ? 'var(--red-l)' : 'var(--muted)',
@@ -20,15 +20,22 @@ export const Btn = ({ variant='primary', size='md', onClick, disabled, children,
     onClick={onClick} disabled={disabled}>{children}</button>
 );
 
-export const Badge = ({ color='blue', children }) => {
-  const map = { blue:'#1a3a7a:#a8c8ff', green:'#1a4a35:#9eecc7', amber:'#4a3010:#fcd68a', red:'#4a1a1a:#f7a0a0', purple:'#2d1a5a:#d4baff' };
-  const [bg, fg] = (map[color] || map.blue).split(':');
+export const Badge = ({ color='primary', children }) => {
+  const map = { 
+    primary:'#5b21b6:#ddd6fe', 
+    secondary:'#0369a1:#06b6d4', 
+    green:'#047857:#6ee7b7', 
+    amber:'#d97706:#fbbf24', 
+    red:'#dc2626:#fca5a5', 
+    purple:'#6d28d9:#ddd6fe' 
+  };
+  const [bg, fg] = (map[color] || map.primary).split(':');
   return <span style={{ display:'inline-flex', alignItems:'center', padding:'2px 9px', borderRadius:20, fontSize:12, fontWeight:500, background:bg, color:fg }}>{children}</span>;
 };
 
 export const StatusBadge = ({ status }) => {
-  const m = { 'todo': ['blue','Todo'], 'in-progress': ['amber','In Progress'], 'done': ['green','Done'] };
-  const [c, l] = m[status] || ['blue','Unknown'];
+  const m = { 'todo': ['secondary','Todo'], 'in-progress': ['amber','In Progress'], 'done': ['green','Done'] };
+  const [c, l] = m[status] || ['primary','Unknown'];
   return <Badge color={c}>{l}</Badge>;
 };
 
@@ -43,7 +50,7 @@ export const Avatar = ({ user, size=28 }) => {
     <div style={{
       width: size, height: size, borderRadius: '50%', display: 'flex',
       alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-      background: (user.color||'#4f8ef7') + '22', color: user.color||'#4f8ef7',
+      background: (user.color||'#7c3aed') + '22', color: user.color||'#7c3aed',
       fontSize: Math.round(size*.38), fontWeight: 600,
     }}>{user.initials || user.name?.slice(0,2).toUpperCase()}</div>
   );

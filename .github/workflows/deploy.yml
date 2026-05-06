@@ -1,0 +1,50 @@
+name: Deploy to Railway
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: Install backend dependencies
+      run: npm install
+      working-directory: ./backend
+    
+    - name: Install frontend dependencies
+      run: npm install
+      working-directory: ./frontend
+    
+    - name: Run backend linter (if available)
+      run: npm run lint --if-present
+      working-directory: ./backend
+      continue-on-error: true
+    
+    - name: Build frontend
+      run: npm run build
+      working-directory: ./frontend
+      env:
+        VITE_API_URL: ${{ secrets.VITE_API_URL }}
+    
+    - name: Deploy to Railway
+      uses: railway-app/cli-action@v1
+      with:
+        token: ${{ secrets.RAILWAY_TOKEN }}
+        environment: production
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
