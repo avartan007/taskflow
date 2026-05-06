@@ -1,0 +1,16 @@
+FROM node:18-alpine
+
+WORKDIR /app/backend
+
+COPY backend/package*.json ./
+
+RUN npm ci --only=production
+
+COPY backend/src ./src
+
+ENV PORT=5003
+ENV NODE_ENV=production
+
+EXPOSE 5003
+
+CMD ["node", "src/index.js"]
