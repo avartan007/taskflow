@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 const s = {
   btn: (variant='primary', size='md') => ({
-    cursor: 'pointer', border: 'none', borderRadius: 10, fontFamily: 'inherit',
+    cursor: 'pointer', borderRadius: 10, fontFamily: 'inherit',
     fontSize: size === 'sm' ? 13 : 14, fontWeight: 500,
     padding: size === 'sm' ? '5px 12px' : '9px 18px',
     transition: 'all .15s',

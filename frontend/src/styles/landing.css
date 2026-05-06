@@ -20,6 +20,8 @@
   background: linear-gradient(135deg, var(--background) 0%, #1a1f3a 50%, #0f1728 100%);
   color: var(--text);
   overflow-x: hidden;
+  width: 100%;
+  min-height: 100vh;
 }
 
 /* Navigation */
