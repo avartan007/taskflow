@@ -138,9 +138,9 @@ exports.update = async (req, res) => {
         return res.status(403).json({ error: 'Cannot edit tasks in other managers\' projects' });
       }
     } else {
-      // Members can only update their own tasks
-      if (t.assignee_id !== req.user.id && t.created_by !== req.user.id) {
-        return res.status(403).json({ error: 'Cannot edit this task' });
+      // Members can ONLY update their own assigned tasks
+      if (t.assignee_id !== req.user.id) {
+        return res.status(403).json({ error: 'Cannot edit this task - you must be the assignee' });
       }
     }
 
@@ -167,20 +167,34 @@ exports.update = async (req, res) => {
 
 exports.remove = async (req, res) => {
   try {
-    let query = `DELETE FROM tasks WHERE id = $1`;
-    let params = [req.params.taskId];
+    // First fetch the task to verify it exists and check authorization
+    const taskCheck = await pool.query(
+      'SELECT t.*, p.owner_id FROM tasks t JOIN projects p ON t.project_id = p.id WHERE t.id = $1',
+      [req.params.taskId]
+    );
+    if (!taskCheck.rows.length) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
     
+    const t = taskCheck.rows[0];
+    
+    // Check authorization
     if (req.user.role === 'admin') {
       // Admins can delete any task
     } else if (req.user.role === 'manager') {
-      // Managers can delete tasks in projects they own
-      query += ` AND project_id IN (SELECT id FROM projects WHERE owner_id = $2)`;
-      params.push(req.user.id);
+      // Managers can only delete tasks in projects they own
+      if (t.owner_id !== req.user.id) {
+        return res.status(403).json({ error: 'Cannot delete tasks in other managers\' projects' });
+      }
     } else {
-      // Members can only delete tasks they created or are assigned to
-      query += ` AND (assignee_id = $2 OR created_by = $2)`;
-      params.push(req.user.id);
+      // Members can only delete tasks they created, NOT assigned ones
+      if (t.created_by !== req.user.id) {
+        return res.status(403).json({ error: 'You can only delete tasks you created' });
+      }
     }
+    
+    let query = `DELETE FROM tasks WHERE id = $1`;
+    let params = [req.params.taskId];
     
     query += ` RETURNING id`;
     const result = await pool.query(query, params);
