@@ -44,25 +44,45 @@ exports.getDashboard = async (req, res) => {
   try {
     const userId = req.user.id;
     const isAdmin = req.user.role === 'admin';
+    const isManager = req.user.role === 'manager';
 
-    const statsQuery = isAdmin
-      ? `SELECT
+    let statsQuery, baseQuery;
+    let params = [];
+    
+    if (isAdmin) {
+      baseQuery = taskQuery;
+      statsQuery = `SELECT
            COUNT(*) as total,
            COUNT(*) FILTER (WHERE status = 'in-progress') as in_progress,
            COUNT(*) FILTER (WHERE status = 'done') as done,
            COUNT(*) FILTER (WHERE status != 'done' AND due_date < CURRENT_DATE) as overdue
-         FROM tasks`
-      : `SELECT
+         FROM tasks`;
+    } else if (isManager) {
+      // Managers see tasks from their projects
+      baseQuery = taskQuery + ` WHERE t.project_id IN (SELECT id FROM projects WHERE owner_id = $1)`;
+      statsQuery = `SELECT
+           COUNT(*) as total,
+           COUNT(*) FILTER (WHERE status = 'in-progress') as in_progress,
+           COUNT(*) FILTER (WHERE status = 'done') as done,
+           COUNT(*) FILTER (WHERE status != 'done' AND due_date < CURRENT_DATE) as overdue
+         FROM tasks WHERE project_id IN (SELECT id FROM projects WHERE owner_id = $1)`;
+      params = [userId];
+    } else {
+      // Members see only their assigned tasks
+      baseQuery = taskQuery + ` WHERE t.assignee_id = $1`;
+      statsQuery = `SELECT
            COUNT(*) as total,
            COUNT(*) FILTER (WHERE status = 'in-progress') as in_progress,
            COUNT(*) FILTER (WHERE status = 'done') as done,
            COUNT(*) FILTER (WHERE status != 'done' AND due_date < CURRENT_DATE) as overdue
          FROM tasks WHERE assignee_id = $1`;
+      params = [userId];
+    }
 
     const [statsRes, recentRes, overdueRes] = await Promise.all([
-      pool.query(statsQuery, isAdmin ? [] : [userId]),
-      pool.query(`${taskQuery} ${isAdmin ? '' : 'WHERE t.assignee_id = $1'} ORDER BY t.created_at DESC LIMIT 5`, isAdmin ? [] : [userId]),
-      pool.query(`${taskQuery} WHERE t.status != 'done' AND t.due_date < CURRENT_DATE ${isAdmin ? '' : 'AND t.assignee_id = $1'} ORDER BY t.due_date ASC LIMIT 5`, isAdmin ? [] : [userId]),
+      pool.query(statsQuery, params),
+      pool.query(`${baseQuery} ORDER BY t.created_at DESC LIMIT 5`, params),
+      pool.query(`${baseQuery} AND t.status != 'done' AND t.due_date < CURRENT_DATE ORDER BY t.due_date ASC LIMIT 5`, params),
     ]);
 
     res.json({
@@ -105,13 +125,23 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   const { title, description, assignee_id, status, priority, due_date, tags } = req.body;
   try {
-    const existing = await pool.query('SELECT * FROM tasks WHERE id = $1', [req.params.taskId]);
+    const existing = await pool.query('SELECT t.*, p.owner_id FROM tasks t JOIN projects p ON t.project_id = p.id WHERE t.id = $1', [req.params.taskId]);
     if (!existing.rows.length) return res.status(404).json({ error: 'Task not found' });
 
     const t = existing.rows[0];
-    // Members can only update their own tasks
-    if (req.user.role !== 'admin' && t.assignee_id !== req.user.id && t.created_by !== req.user.id) {
-      return res.status(403).json({ error: 'Cannot edit this task' });
+    // Check authorization
+    if (req.user.role === 'admin') {
+      // Admins can update any task
+    } else if (req.user.role === 'manager') {
+      // Managers can update tasks in projects they own
+      if (t.owner_id !== req.user.id) {
+        return res.status(403).json({ error: 'Cannot edit tasks in other managers\' projects' });
+      }
+    } else {
+      // Members can only update their own tasks
+      if (t.assignee_id !== req.user.id && t.created_by !== req.user.id) {
+        return res.status(403).json({ error: 'Cannot edit this task' });
+      }
     }
 
     const result = await pool.query(
@@ -137,10 +167,23 @@ exports.update = async (req, res) => {
 
 exports.remove = async (req, res) => {
   try {
-    const result = await pool.query(
-      `DELETE FROM tasks WHERE id = $1 ${req.user.role !== 'admin' ? 'AND (assignee_id = $2 OR created_by = $2)' : ''} RETURNING id`,
-      req.user.role !== 'admin' ? [req.params.taskId, req.user.id] : [req.params.taskId]
-    );
+    let query = `DELETE FROM tasks WHERE id = $1`;
+    let params = [req.params.taskId];
+    
+    if (req.user.role === 'admin') {
+      // Admins can delete any task
+    } else if (req.user.role === 'manager') {
+      // Managers can delete tasks in projects they own
+      query += ` AND project_id IN (SELECT id FROM projects WHERE owner_id = $2)`;
+      params.push(req.user.id);
+    } else {
+      // Members can only delete tasks they created or are assigned to
+      query += ` AND (assignee_id = $2 OR created_by = $2)`;
+      params.push(req.user.id);
+    }
+    
+    query += ` RETURNING id`;
+    const result = await pool.query(query, params);
     if (!result.rows.length) return res.status(404).json({ error: 'Task not found or unauthorized' });
     res.json({ message: 'Task deleted' });
   } catch (err) {

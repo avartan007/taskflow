@@ -11,7 +11,7 @@ const migrate = async () => {
         name VARCHAR(100) NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
-        role VARCHAR(20) NOT NULL DEFAULT 'member' CHECK (role IN ('admin', 'member')),
+        role VARCHAR(20) NOT NULL DEFAULT 'member' CHECK (role IN ('admin', 'manager', 'member')),
         color VARCHAR(20) DEFAULT '#4f8ef7',
         initials VARCHAR(5),
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -81,12 +81,17 @@ const migrate = async () => {
       console.log('🌱 Seeding demo data...');
 
       const adminPass = await bcrypt.hash('admin123', 10);
+      const janePass = await bcrypt.hash('jane123', 10);
       const mayaPass = await bcrypt.hash('maya123', 10);
       const samPass = await bcrypt.hash('sam123', 10);
 
       const adminRes = await client.query(
         `INSERT INTO users (name, email, password, role, color, initials) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`,
         ['Alex Admin', 'admin@demo.com', adminPass, 'admin', '#4f8ef7', 'AA']
+      );
+      const janeRes = await client.query(
+        `INSERT INTO users (name, email, password, role, color, initials) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`,
+        ['Jane Manager', 'jane@demo.com', janePass, 'manager', '#f5a623', 'JM']
       );
       const mayaRes = await client.query(
         `INSERT INTO users (name, email, password, role, color, initials) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`,
@@ -98,6 +103,7 @@ const migrate = async () => {
       );
 
       const adminId = adminRes.rows[0].id;
+      const janeId = janeRes.rows[0].id;
       const mayaId = mayaRes.rows[0].id;
       const samId = samRes.rows[0].id;
 
@@ -109,12 +115,24 @@ const migrate = async () => {
         `INSERT INTO projects (name, description, color, owner_id) VALUES ($1,$2,$3,$4) RETURNING id`,
         ['Mobile App', 'Build cross-platform mobile application', '#9b6dff', adminId]
       );
+      const p3Res = await client.query(
+        `INSERT INTO projects (name, description, color, owner_id) VALUES ($1,$2,$3,$4) RETURNING id`,
+        ['Team Task Manager', 'Assigning task to team', '#20c9c9', janeId]
+      );
+      const p4Res = await client.query(
+        `INSERT INTO projects (name, description, color, owner_id) VALUES ($1,$2,$3,$4) RETURNING id`,
+        ['Test Project', '', '#e05252', adminId]
+      );
 
       const p1Id = p1Res.rows[0].id;
       const p2Id = p2Res.rows[0].id;
+      const p3Id = p3Res.rows[0].id;
+      const p4Id = p4Res.rows[0].id;
 
       await client.query(`INSERT INTO project_members VALUES ($1,$2),($1,$3),($1,$4)`, [p1Id, adminId, mayaId, samId]);
       await client.query(`INSERT INTO project_members VALUES ($1,$2),($1,$3)`, [p2Id, adminId, samId]);
+      await client.query(`INSERT INTO project_members VALUES ($1,$2),($1,$3),($1,$4)`, [p3Id, janeId, mayaId, samId]);
+      await client.query(`INSERT INTO project_members VALUES ($1,$2)`, [p4Id, adminId]);
 
       const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 2);
       const pastDate = new Date(); pastDate.setDate(pastDate.getDate() - 3);
@@ -140,6 +158,19 @@ const migrate = async () => {
       await client.query(
         `INSERT INTO tasks (title, description, project_id, assignee_id, status, priority, due_date, tags, created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
         ['Push notification setup', 'Integrate Firebase push notifications', p2Id, adminId, 'todo', 'medium', pastDate.toISOString().slice(0,10), ['mobile'], adminId]
+      );
+      // Manager's project tasks
+      await client.query(
+        `INSERT INTO tasks (title, description, project_id, assignee_id, status, priority, due_date, tags, created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+        ['Setup project structure', 'Initialize project with basic components', p3Id, mayaId, 'done', 'high', tomorrow.toISOString().slice(0,10), ['setup'], janeId]
+      );
+      await client.query(
+        `INSERT INTO tasks (title, description, project_id, assignee_id, status, priority, due_date, tags, created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+        ['Create task assignment feature', 'Allow managers to assign tasks to team members', p3Id, samId, 'done', 'high', futureDate.toISOString().slice(0,10), ['feature'], janeId]
+      );
+      await client.query(
+        `INSERT INTO tasks (title, description, project_id, assignee_id, status, priority, due_date, tags, created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+        ['Build dashboard', 'Create overview dashboard for project', p3Id, janeId, 'done', 'medium', tomorrow.toISOString().slice(0,10), ['ui','dashboard'], janeId]
       );
 
       console.log('✅ Demo data seeded');

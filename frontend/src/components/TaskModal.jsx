@@ -101,7 +101,7 @@ export default function TaskModal({ task, projectId, onClose, onSaved }) {
         </FormGroup>
       </FormRow>
       <div style={{ display:'flex', gap:8, justifyContent:'flex-end', marginTop:'.5rem' }}>
-        {isEdit && user?.role === 'admin' && (
+        {isEdit && (user?.role === 'admin' || user?.role === 'manager') && (
           <Btn variant="danger" size="sm" onClick={handleDelete}>Delete</Btn>
         )}
         <Btn variant="ghost" onClick={onClose}>Cancel</Btn>

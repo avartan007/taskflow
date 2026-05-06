@@ -29,6 +29,21 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
+const requireManager = (req, res, next) => {
+  if (req.user?.role !== 'manager' && req.user?.role !== 'admin') {
+    return res.status(403).json({ error: 'Manager access required' });
+  }
+  next();
+};
+
+const requireManagerOrAdmin = (req, res, next) => {
+  const role = req.user?.role;
+  if (role !== 'manager' && role !== 'admin') {
+    return res.status(403).json({ error: 'Manager or Admin access required' });
+  }
+  next();
+};
+
 const requireProjectAccess = async (req, res, next) => {
   const projectId = req.params.projectId || req.body.project_id;
   if (!projectId || projectId === 'undefined') {
@@ -49,4 +64,4 @@ const requireProjectAccess = async (req, res, next) => {
   }
 };
 
-module.exports = { authenticate, requireAdmin, requireProjectAccess };
+module.exports = { authenticate, requireAdmin, requireManager, requireManagerOrAdmin, requireProjectAccess };

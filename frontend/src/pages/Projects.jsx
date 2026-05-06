@@ -23,7 +23,7 @@ export default function Projects() {
     <div className="fade-in">
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.5rem' }}>
         <div style={{ fontSize:20, fontWeight:600 }}>Projects</div>
-        {user?.role === 'admin' && <Btn onClick={() => setShowModal(true)}>+ New Project</Btn>}
+        {(user?.role === 'admin' || user?.role === 'manager') && <Btn onClick={() => setShowModal(true)}>+ New Project</Btn>}
       </div>
 
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:'1rem' }}>

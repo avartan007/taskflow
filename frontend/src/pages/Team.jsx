@@ -43,7 +43,7 @@ export default function Team() {
               </div>
               <div style={{ fontSize:13, color:'var(--muted)' }}>{u.email}</div>
               <div style={{ fontSize:12, padding:'4px 8px', background:'var(--surface2)', borderRadius:6, display:'inline-block', width:'fit-content' }}>
-                {u.role === 'admin' ? '👑 Admin' : '👤 Member'}
+                {u.role === 'admin' ? '👑 Admin' : u.role === 'manager' ? '📊 Manager' : '👤 Member'}
               </div>
               <div style={{ fontSize:12, color:'var(--green)' }}>Active</div>
             </div>

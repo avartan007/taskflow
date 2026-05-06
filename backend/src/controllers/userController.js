@@ -27,7 +27,13 @@ exports.getOne = async (req, res) => {
 
 exports.create = async (req, res) => {
   const { name, email, password, role = 'member' } = req.body;
+  const validRoles = ['admin', 'manager', 'member'];
+  
   try {
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ error: 'Invalid role. Must be one of: admin, manager, member' });
+    }
+    
     const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
     if (existing.rows.length) return res.status(409).json({ error: 'Email already registered' });
 
@@ -50,11 +56,18 @@ exports.create = async (req, res) => {
 
 exports.update = async (req, res) => {
   const { name, role, color } = req.body;
+  const validRoles = ['admin', 'manager', 'member'];
+  
   // Only allow self-update or admin update
   if (req.user.id !== req.params.userId && req.user.role !== 'admin') {
     return res.status(403).json({ error: 'Unauthorized' });
   }
+  
   // Only admin can change roles
+  if (role && !validRoles.includes(role)) {
+    return res.status(400).json({ error: 'Invalid role. Must be one of: admin, manager, member' });
+  }
+  
   const safeRole = req.user.role === 'admin' ? role : undefined;
 
   try {

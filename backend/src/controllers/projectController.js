@@ -5,12 +5,20 @@ exports.getAll = async (req, res) => {
     let query = `SELECT p.*, u.name as owner_name FROM projects p JOIN users u ON p.owner_id = u.id`;
     let params = [];
     
-    if (req.user.role !== 'admin') {
+    if (req.user.role === 'admin') {
+      // Admins see all projects
+      query += ` ORDER BY p.created_at DESC`;
+    } else if (req.user.role === 'manager') {
+      // Managers see projects they own or are members of
+      query += ` WHERE p.owner_id = $1 OR EXISTS(SELECT 1 FROM project_members pm WHERE pm.project_id = p.id AND pm.user_id = $1)`;
+      params = [req.user.id];
+      query += ` ORDER BY p.created_at DESC`;
+    } else {
+      // Members see only projects they're assigned to
       query += ` WHERE EXISTS(SELECT 1 FROM project_members pm WHERE pm.project_id = p.id AND pm.user_id = $1)`;
       params = [req.user.id];
+      query += ` ORDER BY p.created_at DESC`;
     }
-    
-    query += ` ORDER BY p.created_at DESC`;
     
     const projectsRes = await pool.query(query, params);
     
@@ -114,11 +122,27 @@ exports.update = async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
+    
+    // Check if project exists and user has permission
+    const projectCheck = await client.query(
+      `SELECT owner_id FROM projects WHERE id = $1`,
+      [req.params.projectId]
+    );
+    if (!projectCheck.rows.length) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    
+    const project = projectCheck.rows[0];
+    if (req.user.role === 'manager' && project.owner_id !== req.user.id) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ error: 'Managers can only update their own projects' });
+    }
+    
     const result = await client.query(
       `UPDATE projects SET name=COALESCE($1,name), description=COALESCE($2,description), color=COALESCE($3,color) WHERE id=$4 RETURNING *`,
       [name, description, color, req.params.projectId]
     );
-    if (!result.rows.length) return res.status(404).json({ error: 'Project not found' });
 
     if (member_ids) {
       await client.query(`DELETE FROM project_members WHERE project_id = $1`, [req.params.projectId]);
@@ -140,8 +164,22 @@ exports.update = async (req, res) => {
 
 exports.remove = async (req, res) => {
   try {
-    const result = await pool.query(`DELETE FROM projects WHERE id = $1 AND owner_id = $2 RETURNING id`, [req.params.projectId, req.user.id]);
-    if (!result.rows.length) return res.status(404).json({ error: 'Project not found or unauthorized' });
+    // Check project ownership for managers
+    const projectCheck = await pool.query(
+      `SELECT owner_id FROM projects WHERE id = $1`,
+      [req.params.projectId]
+    );
+    if (!projectCheck.rows.length) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    
+    const project = projectCheck.rows[0];
+    if (req.user.role === 'manager' && project.owner_id !== req.user.id) {
+      return res.status(403).json({ error: 'Managers can only delete their own projects' });
+    }
+    
+    const result = await pool.query(`DELETE FROM projects WHERE id = $1 RETURNING id`, [req.params.projectId]);
+    if (!result.rows.length) return res.status(404).json({ error: 'Project not found' });
     res.json({ message: 'Project deleted' });
   } catch (err) {
     console.error(err);

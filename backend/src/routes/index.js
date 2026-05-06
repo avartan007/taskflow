@@ -3,7 +3,7 @@ const authCtrl = require('../controllers/authController');
 const projectCtrl = require('../controllers/projectController');
 const taskCtrl = require('../controllers/taskController');
 const userCtrl = require('../controllers/userController');
-const { authenticate, requireAdmin, requireProjectAccess } = require('../middleware/auth');
+const { authenticate, requireAdmin, requireManagerOrAdmin, requireProjectAccess } = require('../middleware/auth');
 const { validateRegister, validateLogin, validateProject, validateTask } = require('../middleware/validate');
 
 // Auth
@@ -14,12 +14,12 @@ router.get('/auth/me', authenticate, authCtrl.me);
 // Dashboard
 router.get('/dashboard', authenticate, taskCtrl.getDashboard);
 
-// Projects
+// Projects - Managers and Admins can create projects
 router.get('/projects', authenticate, projectCtrl.getAll);
-router.post('/projects', authenticate, requireAdmin, validateProject, projectCtrl.create);
+router.post('/projects', authenticate, requireManagerOrAdmin, validateProject, projectCtrl.create);
 router.get('/projects/:projectId', authenticate, requireProjectAccess, projectCtrl.getOne);
-router.put('/projects/:projectId', authenticate, requireAdmin, validateProject, projectCtrl.update);
-router.delete('/projects/:projectId', authenticate, requireAdmin, projectCtrl.remove);
+router.put('/projects/:projectId', authenticate, requireManagerOrAdmin, validateProject, projectCtrl.update);
+router.delete('/projects/:projectId', authenticate, requireManagerOrAdmin, projectCtrl.remove);
 router.get('/projects/:projectId/stats', authenticate, requireProjectAccess, projectCtrl.getStats);
 
 // Tasks
