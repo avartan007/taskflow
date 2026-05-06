@@ -37,20 +37,30 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   const { email, password } = req.body;
   try {
+    console.log('Login attempt for:', email);
     const result = await pool.query(
       'SELECT id, name, email, password, role, color, initials FROM users WHERE email = $1',
       [email]
     );
-    if (!result.rows.length) return res.status(401).json({ error: 'Invalid credentials' });
+    
+    if (!result.rows.length) {
+      console.log('Login failed: User not found');
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
 
     const user = result.rows[0];
     const valid = await bcrypt.compare(password, user.password);
-    if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
+    
+    if (!valid) {
+      console.log('Login failed: Incorrect password');
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
 
+    console.log('Login success for:', email);
     const { password: _, ...userWithoutPass } = user;
     res.json({ token: generateToken(user.id), user: userWithoutPass });
   } catch (err) {
-    console.error(err);
+    console.error('Login error:', err);
     res.status(500).json({ error: 'Login failed' });
   }
 };
