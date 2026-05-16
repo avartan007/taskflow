@@ -8,22 +8,25 @@ const routes = require('./routes');
 const app = express();
 const PORT = process.env.PORT || 5003;
 
-// Security Middleware
-app.use(helmet());
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: { error: 'Too many requests, please try again later.' }
-});
-app.use('/api/', limiter);
+// Trust Railway Proxy
+app.set('trust proxy', 1);
 
-// Middleware
+// CORS FIRST
 app.use(cors({
   origin: true, 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 }));
+
+// Security Middleware
+app.use(helmet());
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 500, // limit each IP to 500 requests per windowMs
+  message: { error: 'Too many requests, please try again later.' }
+});
+app.use('/api/', limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
